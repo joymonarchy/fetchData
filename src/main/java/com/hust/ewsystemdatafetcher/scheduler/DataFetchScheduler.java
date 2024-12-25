@@ -11,14 +11,14 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.hust.ewsystemdatafetcher.service.RealPointService;
 import com.yingfeng.api.IYFApi;
 import com.yingfeng.api.YFFactory;
+import com.yingfeng.api.YFHisval;
 import com.yingfeng.api.YFNowval;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class DataFetchScheduler {
@@ -54,9 +54,14 @@ public class DataFetchScheduler {
             }
 
             // 获取当前值
-            List<YFNowval> values = connect.GetNowValue(vCpids);
+            Calendar cal = new GregorianCalendar();
+            cal.add(Calendar.MINUTE, -30);
 
-            dataService.processAndSaveData(values);
+            // 获取调整后的时间
+            Date snapTime = cal.getTime();
+
+            List<YFHisval> values = connect.GetSnapshot(vCpids,snapTime);
+            dataService.processAndSaveHisData(values);
 
 
         } catch (Exception e) {
