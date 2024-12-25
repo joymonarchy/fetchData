@@ -24,7 +24,7 @@ import java.util.List;
 public class DataFetchScheduler {
 
     // API连接参数
-    private static final String API_HOST = "192.168.10.71";
+    private static final String API_HOST = "192.168.10.77";
     private static final int API_PORT = 9090;
     private static final String API_USERNAME = "admin";
     private static final String API_PASSWORD = "123456";
