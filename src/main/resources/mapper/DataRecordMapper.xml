@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hust.ewsystemdatafetcher.mapper.CommonDataMapper">
+
+    <select id="selectAllData" resultType="com.hust.ewsystemdatafetcher.entity.CommonData">
+        SELECT * FROM ${tableName}
+    </select>
+
+    <select id="selectDataByTime"  resultType="com.hust.ewsystemdatafetcher.entity.CommonData">
+        SELECT * FROM ${tableName}
+        WHERE datetime BETWEEN #{startTime} AND #{endTime}
+    </select>
+
+
+
+</mapper>
