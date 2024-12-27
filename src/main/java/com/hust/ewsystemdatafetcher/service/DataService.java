@@ -36,7 +36,7 @@ public class DataService {
     }
 
     public void processAndSaveNowData(List<YFNowval> values) {
-        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Beijing"));
+        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
         Date currentDate = Date.from(zonedDateTime.toInstant());
 
 
@@ -50,7 +50,7 @@ public class DataService {
                     record.setDatetime(currentDate); // 设置为当前时区的时间
                     record.setStatus(item.value.Status);
                     record.setValue(item.value.Value);
-                    System.out.println(cpid+"\t"+record.getValue());
+                    System.out.println(cpid+"\t"+record.getDatetime()+"\t"+record.getValue());
                     dataMap.computeIfAbsent(cpid, k -> new ArrayList<>()).add(record);
                 }
             }
