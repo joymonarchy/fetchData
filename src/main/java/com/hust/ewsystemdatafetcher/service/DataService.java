@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,6 +36,10 @@ public class DataService {
     }
 
     public void processAndSaveNowData(List<YFNowval> values) {
+        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Beijing"));
+        Date currentDate = Date.from(zonedDateTime.toInstant());
+
+
         if (values != null && !values.isEmpty()) {
             // 使用 HashMap 按 tableName 分组
             HashMap<String, List<CommonData>> dataMap = new HashMap<>();
@@ -41,11 +47,10 @@ public class DataService {
                 if (item.value.Status == 1) {
                     String cpid = item.Cpid.toLowerCase();
                     CommonData record = new CommonData();
-                    record.setDatetime(new Date()); // 设置为当前时间
+                    record.setDatetime(currentDate); // 设置为当前时区的时间
                     record.setStatus(item.value.Status);
                     record.setValue(item.value.Value);
                     System.out.println(cpid+"\t"+record.getValue());
-
                     dataMap.computeIfAbsent(cpid, k -> new ArrayList<>()).add(record);
                 }
             }
