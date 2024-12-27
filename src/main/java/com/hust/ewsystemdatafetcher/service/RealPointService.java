@@ -27,7 +27,6 @@ public class RealPointService {
         return realPoints.stream()
                 .map(RealPoint::getPointLabel)
                 .filter(label -> label != null && !label.trim().isEmpty())
-                .map(String::toLowerCase)
                 .collect(Collectors.toList());
     }
 }

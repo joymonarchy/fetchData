@@ -66,11 +66,6 @@ public class DataService {
                     .flatMap(hisval -> {
                         String tableName = hisval.getCpid().toLowerCase();
 
-                        // 验证表名是否合法
-                        if (!isValidTableName(tableName)) {
-                            System.err.println("不允许的表名: " + tableName);
-                            return Stream.empty();
-                        }
 
                         List<YFValue> yfValues = hisval.getValues();
                         if (yfValues == null || yfValues.isEmpty()) {
@@ -106,10 +101,5 @@ public class DataService {
      * @param tableName 表名
      * @return 如果合法返回 true，否则返回 false
      */
-    private boolean isValidTableName(String tableName) {
-        // 示例：预定义允许的表名列表
-        // 实际情况应根据业务需求调整
-        List<String> allowedTableNames = List.of("table1", "table2", "table3");
-        return allowedTableNames.contains(tableName);
-    }
+
 }

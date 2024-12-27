@@ -39,7 +39,43 @@ public class DataFetchScheduler {
      * 每30秒执行一次
      */
     @Scheduled(fixedRate = 30000)
-    public void fetchData() {
+    public void fetchNowData(){
+        IYFApi connect = null;
+        try {
+            // 连接API
+            connect = YFFactory.CreateApi(API_HOST, API_PORT, API_USERNAME, API_PASSWORD);
+
+            // 从数据库获取vcpids
+            List<String> vCpids = realPointService.getAllVcpids();
+
+            if (vCpids.isEmpty()) {
+                System.out.println("未从数据库获取到vcpids.");
+                return;
+            }
+
+            // 获取当前值
+            Calendar cal = new GregorianCalendar();
+            cal.add(Calendar.MINUTE, -30);
+
+
+            List<YFNowval> values = connect.GetNowValue(vCpids);
+            dataService.processAndSaveNowData(values);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // 关闭API连接
+            if (connect != null) {
+                try {
+                    connect.Close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    public void fetchHisData() {
         IYFApi connect = null;
         try {
             // 连接API
