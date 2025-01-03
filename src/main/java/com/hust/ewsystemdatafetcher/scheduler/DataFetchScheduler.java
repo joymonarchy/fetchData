@@ -51,9 +51,11 @@ public class DataFetchScheduler {
      */
 
 
+
+
     @Scheduled(fixedRate = 10000)  // 每10秒执行一次
     public void fetchNowData() {
-        // 每10秒启动一次
+        // 每10秒启动一次新的任务
         ExecutorService executor = Executors.newFixedThreadPool(3);  // 创建一个线程池，有3个线程
 
         try {
@@ -64,16 +66,14 @@ public class DataFetchScheduler {
                 return;
             }
 
-            // 按照每个线程 10 秒的间隔，分配数据获取任务
+            // 按照每个线程10秒的间隔，分配数据获取任务
             int threadCount = 3;  // 设置为3个线程
-            int interval = 10000;  // 10秒钟间隔
-            int taskTime = 30000;  // 每个任务需要运行30秒
 
-            // 根据线程数划分任务，每个线程一个子集
+            // 创建3个线程，每个线程执行10秒
             for (int i = 0; i < threadCount; i++) {
                 final int threadIndex = i;
-                // 提交线程任务，每个线程开始时间错开
-                executor.submit(() -> fetchDataForVcpidWithInterval(vCpids, threadIndex, threadCount, interval, taskTime));
+                // 提交线程任务，每个线程开始时间错开10秒
+                executor.submit(() -> fetchDataForVcpid(vCpids, threadIndex, threadCount));
             }
 
         } catch (Exception e) {
@@ -84,7 +84,7 @@ public class DataFetchScheduler {
         }
     }
 
-    private void fetchDataForVcpidWithInterval(List<String> vCpids, int threadIndex, int threadCount, int interval, int taskTime) {
+    private void fetchDataForVcpid(List<String> vCpids, int threadIndex, int threadCount) {
         // 计算每个线程分配的数据，线程的间隔是 threadCount
         int size = vCpids.size();
         int start = (size / threadCount) * threadIndex;
@@ -98,22 +98,11 @@ public class DataFetchScheduler {
             // 连接API
             connect = YFFactory.CreateApi(apiHost, apiPort, apiUsername, apiPassword);
 
-            // 每个线程执行30秒
-            long startTime = System.currentTimeMillis();
-            while (System.currentTimeMillis() - startTime < taskTime) {
-                // 获取当前值
-                List<YFNowval> values = connect.GetNowValue(vCpidsForThread);
+            // 获取当前值并处理
+            List<YFNowval> values = connect.GetNowValue(vCpidsForThread);
 
-                // 数据处理和保存
-                dataService.processAndSaveNowData(values);
-
-                // 暂停10秒，确保每个线程每30秒执行一次
-                try {
-                    Thread.sleep(interval);  // 每隔10秒取一次
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            // 数据处理和保存
+            dataService.processAndSaveNowData(values);
 
         } catch (Exception e) {
             e.printStackTrace();
