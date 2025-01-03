@@ -47,7 +47,7 @@ public class DataFetchScheduler {
     /**
      * 每30秒执行一次
      */
-//    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 10000)
     public void fetchNowData(){
         IYFApi connect = null;
         try {
@@ -84,7 +84,7 @@ public class DataFetchScheduler {
             }
         }
     }
-    @Scheduled(fixedRate = 600000)//十分钟一次试试呢
+//    @Scheduled(fixedRate = 10000)//十分钟一次试试呢
     public void fetchHisData() {
         IYFApi connect = null;
         try {

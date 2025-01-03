@@ -6,6 +6,7 @@ import com.yingfeng.api.YFHisval;
 import com.yingfeng.api.YFNowval;
 import com.yingfeng.api.YFValue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,10 +36,8 @@ public class DataService {
             }
         }
     }
-
+    @Async
     public void processAndSaveNowData(List<YFNowval> values) {
-
-
         if (values != null && !values.isEmpty()) {
             // 使用 HashMap 按 tableName 分组
             HashMap<String, List<CommonData>> dataMap = new HashMap<>();
