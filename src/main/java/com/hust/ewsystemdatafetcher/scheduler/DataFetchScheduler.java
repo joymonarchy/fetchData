@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Component
 public class DataFetchScheduler {
@@ -47,41 +49,70 @@ public class DataFetchScheduler {
     /**
      * 每30秒执行一次
      */
+
+
     @Scheduled(fixedRate = 10000)  // 每10秒执行一次
     public void fetchNowData() {
-        IYFApi connect = null;
-        long startTime = System.currentTimeMillis(); // 记录开始时间
-        try {
-            // 连接API
-            connect = YFFactory.CreateApi(apiHost, apiPort, apiUsername, apiPassword);
+        // 每10秒启动一次
+        ExecutorService executor = Executors.newFixedThreadPool(3);  // 创建一个线程池，有3个线程
 
+        try {
             // 从数据库获取vcpids
             List<String> vCpids = realPointService.getAllVcpids();
-
             if (vCpids.isEmpty()) {
                 System.out.println("未从数据库获取到vcpids.");
                 return;
             }
 
-            // 获取当前值
-            Calendar cal = new GregorianCalendar();
-            cal.add(Calendar.MINUTE, -30);
+            // 按照每个线程 10 秒的间隔，分配数据获取任务
+            int threadCount = 3;  // 设置为3个线程
+            int interval = 10000;  // 10秒钟间隔
+            int taskTime = 30000;  // 每个任务需要运行30秒
 
-            // 设置超时时间，假设5秒
-            long timeout = 5000; // 5秒的超时时间
-            long elapsedTime = System.currentTimeMillis() - startTime;
+            // 根据线程数划分任务，每个线程一个子集
+            for (int i = 0; i < threadCount; i++) {
+                final int threadIndex = i;
+                // 提交线程任务，每个线程开始时间错开
+                executor.submit(() -> fetchDataForVcpidWithInterval(vCpids, threadIndex, threadCount, interval, taskTime));
+            }
 
-            if (elapsedTime < timeout) {
-                // 超过超时阈值则跳过
-                List<YFNowval> values = connect.GetNowValue(vCpids);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // 关闭线程池
+            executor.shutdown();
+        }
+    }
+
+    private void fetchDataForVcpidWithInterval(List<String> vCpids, int threadIndex, int threadCount, int interval, int taskTime) {
+        // 计算每个线程分配的数据，线程的间隔是 threadCount
+        int size = vCpids.size();
+        int start = (size / threadCount) * threadIndex;
+        int end = (threadIndex == threadCount - 1) ? size : (size / threadCount) * (threadIndex + 1);
+
+        // 根据线程索引获取相应的数据范围
+        List<String> vCpidsForThread = vCpids.subList(start, end);
+
+        IYFApi connect = null;
+        try {
+            // 连接API
+            connect = YFFactory.CreateApi(apiHost, apiPort, apiUsername, apiPassword);
+
+            // 每个线程执行30秒
+            long startTime = System.currentTimeMillis();
+            while (System.currentTimeMillis() - startTime < taskTime) {
+                // 获取当前值
+                List<YFNowval> values = connect.GetNowValue(vCpidsForThread);
+
                 // 数据处理和保存
                 dataService.processAndSaveNowData(values);
-            } else {
-                System.out.println("数据获取超时，继续执行当前周期直到结束。");
-                // 如果超时，也继续处理当前周期，但需要等待
-                List<YFNowval> values = connect.GetNowValue(vCpids);
-                // 数据处理和保存
-                dataService.processAndSaveNowData(values);
+
+                // 暂停10秒，确保每个线程每30秒执行一次
+                try {
+                    Thread.sleep(interval);  // 每隔10秒取一次
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
         } catch (Exception e) {
@@ -97,6 +128,7 @@ public class DataFetchScheduler {
             }
         }
     }
+
 
     //    @Scheduled(fixedRate = 10000)//十分钟一次试试呢
     public void fetchHisData() {
