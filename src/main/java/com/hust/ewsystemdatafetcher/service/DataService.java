@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -36,8 +37,8 @@ public class DataService {
     }
 
     public void processAndSaveNowData(List<YFNowval> values) {
-        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
-        Date currentDate = Date.from(zonedDateTime.toInstant());
+//        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
+//        Date currentDate = Date.from(zonedDateTime.toInstant());
 
 
         if (values != null && !values.isEmpty()) {
@@ -47,11 +48,19 @@ public class DataService {
                 if (item.value.Status == 1) {
                     String cpid = item.Cpid.toLowerCase();
                     CommonData record = new CommonData();
-                    record.setDatetime(currentDate); // 设置为当前时区的时间
+
+// 获取当前时间并调整为整十秒
+                    LocalDateTime currentTime = LocalDateTime.now().withSecond(LocalDateTime.now().getSecond() / 10 * 10).withNano(0);
+                    Date currentDate = Date.from(currentTime.atZone(ZoneId.systemDefault()).toInstant());
+                    record.setDatetime(currentDate); // 设置为当前时区的整十秒时间
+
                     record.setStatus(item.value.Status);
                     record.setValue(item.value.Value);
-                    System.out.println(cpid+"\t"+record.getDatetime()+"\t"+record.getValue());
+
+                    System.out.println(cpid + "\t" + record.getDatetime() + "\t" + record.getValue());
+
                     dataMap.computeIfAbsent(cpid, k -> new ArrayList<>()).add(record);
+
                 }
             }
             // 批量插入

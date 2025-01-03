@@ -14,6 +14,7 @@ import com.yingfeng.api.YFFactory;
 import com.yingfeng.api.YFHisval;
 import com.yingfeng.api.YFNowval;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -24,10 +25,18 @@ import java.util.*;
 public class DataFetchScheduler {
 
     // API连接参数
-    private static final String API_HOST = "192.168.10.77";
-    private static final int API_PORT = 9090;
-    private static final String API_USERNAME = "admin";
-    private static final String API_PASSWORD = "123456";
+    @Value("${api.host}")
+    private String apiHost;
+
+    @Value("${api.port}")
+    private int apiPort;
+
+    @Value("${api.username}")
+    private String apiUsername;
+
+    @Value("${api.password}")
+    private String apiPassword;
+
 
     @Autowired
     private DataService dataService;
@@ -38,12 +47,12 @@ public class DataFetchScheduler {
     /**
      * 每30秒执行一次
      */
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRate = 10000)
     public void fetchNowData(){
         IYFApi connect = null;
         try {
             // 连接API
-            connect = YFFactory.CreateApi(API_HOST, API_PORT, API_USERNAME, API_PASSWORD);
+            connect = YFFactory.CreateApi(apiHost, apiPort, apiUsername, apiPassword);
 
             // 从数据库获取vcpids
             List<String> vCpids = realPointService.getAllVcpids();
@@ -79,7 +88,7 @@ public class DataFetchScheduler {
         IYFApi connect = null;
         try {
             // 连接API
-            connect = YFFactory.CreateApi(API_HOST, API_PORT, API_USERNAME, API_PASSWORD);
+            connect = YFFactory.CreateApi(apiHost, apiPort, apiUsername, apiPassword);
 
             // 从数据库获取vcpids
             List<String> vCpids = realPointService.getAllVcpids();
