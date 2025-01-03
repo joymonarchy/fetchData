@@ -47,9 +47,10 @@ public class DataFetchScheduler {
     /**
      * 每30秒执行一次
      */
-    @Scheduled(fixedRate = 10000)
-    public void fetchNowData(){
+    @Scheduled(fixedRate = 10000)  // 每10秒执行一次
+    public void fetchNowData() {
         IYFApi connect = null;
+        long startTime = System.currentTimeMillis(); // 记录开始时间
         try {
             // 连接API
             connect = YFFactory.CreateApi(apiHost, apiPort, apiUsername, apiPassword);
@@ -66,10 +67,22 @@ public class DataFetchScheduler {
             Calendar cal = new GregorianCalendar();
             cal.add(Calendar.MINUTE, -30);
 
+            // 设置超时时间，假设5秒
+            long timeout = 5000; // 5秒的超时时间
+            long elapsedTime = System.currentTimeMillis() - startTime;
 
-            List<YFNowval> values = connect.GetNowValue(vCpids);
-            dataService.processAndSaveNowData(values);
-
+            if (elapsedTime < timeout) {
+                // 超过超时阈值则跳过
+                List<YFNowval> values = connect.GetNowValue(vCpids);
+                // 数据处理和保存
+                dataService.processAndSaveNowData(values);
+            } else {
+                System.out.println("数据获取超时，继续执行当前周期直到结束。");
+                // 如果超时，也继续处理当前周期，但需要等待
+                List<YFNowval> values = connect.GetNowValue(vCpids);
+                // 数据处理和保存
+                dataService.processAndSaveNowData(values);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -84,7 +97,8 @@ public class DataFetchScheduler {
             }
         }
     }
-//    @Scheduled(fixedRate = 10000)//十分钟一次试试呢
+
+    //    @Scheduled(fixedRate = 10000)//十分钟一次试试呢
     public void fetchHisData() {
         IYFApi connect = null;
         try {
