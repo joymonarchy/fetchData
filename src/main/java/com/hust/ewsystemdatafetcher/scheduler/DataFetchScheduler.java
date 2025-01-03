@@ -84,7 +84,7 @@ public class DataFetchScheduler {
             }
         }
     }
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 600000)//十分钟一次试试呢
     public void fetchHisData() {
         IYFApi connect = null;
         try {
@@ -99,18 +99,35 @@ public class DataFetchScheduler {
                 return;
             }
 
-            // 获取当前值
+// 获取当前值
             Calendar cal = new GregorianCalendar();
             cal.add(Calendar.MINUTE, -30);
             Date startTime = cal.getTime();
 
-            cal.add(Calendar.SECOND,60);
+            cal.add(Calendar.SECOND, 600);
             Date endTime = cal.getTime();
 
-            long interval = 10*1000;
+            long interval = 10 * 1000; // 每次查询间隔10秒
 
-            List<YFHisval> values = connect.GetHistoryValue(vCpids, startTime, endTime,interval);;
-            dataService.processAndSaveHisData(values);
+// 将 vCpids 分批，每批处理 100 个
+            int batchSize = 100;
+            List<YFHisval> allValues = new ArrayList<>();
+
+            for (int i = 0; i < vCpids.size(); i += batchSize) {
+                // 获取当前批次的 vCpids
+                int end = Math.min(i + batchSize, vCpids.size());
+                List<String> batchCpids = vCpids.subList(i, end);
+
+                // 获取当前批次的数据
+                List<YFHisval> values = connect.GetHistoryValue(batchCpids, startTime, endTime, interval);
+
+                // 将当前批次的数据添加到所有结果中
+                allValues.addAll(values);
+            }
+
+// 现在 allValues 包含了所有批次的数据
+
+            dataService.processAndSaveHisData(allValues);
 
 
         } catch (Exception e) {
