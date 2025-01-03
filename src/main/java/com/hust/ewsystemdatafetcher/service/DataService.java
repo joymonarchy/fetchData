@@ -40,34 +40,37 @@ public class DataService {
 //        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
 //        Date currentDate = Date.from(zonedDateTime.toInstant());
 
-
         if (values != null && !values.isEmpty()) {
             // 使用 HashMap 按 tableName 分组
             HashMap<String, List<CommonData>> dataMap = new HashMap<>();
-            for (YFNowval item : values) {
-                if (item.value.Status == 1) {
-                    String cpid = item.Cpid.toLowerCase();
-                    CommonData record = new CommonData();
 
-// 获取当前时间并调整为整十秒
-                    LocalDateTime currentTime = LocalDateTime.now().withSecond(LocalDateTime.now().getSecond() / 10 * 10).withNano(0);
-                    Date currentDate = Date.from(currentTime.atZone(ZoneId.systemDefault()).toInstant());
-                    record.setDatetime(currentDate); // 设置为当前时区的整十秒时间
+            // 获取当前时间，并计算整十秒时间
+            LocalDateTime currentTime = LocalDateTime.now().withSecond(LocalDateTime.now().getSecond() / 10 * 10).withNano(0);
+            Date currentDate = Date.from(currentTime.atZone(ZoneId.systemDefault()).toInstant());
 
-                    record.setStatus(item.value.Status);
-                    record.setValue(item.value.Value);
+            // 使用并行流加速处理
+            values.parallelStream()
+                    .filter(item -> item.value.Status == 1)
+                    .forEach(item -> {
+                        String cpid = item.Cpid.toLowerCase();
+                        CommonData record = new CommonData();
+                        record.setDatetime(currentDate);
+                        record.setStatus(item.value.Status);
+                        record.setValue(item.value.Value);
+                        System.out.println(cpid + "\t" + record.getDatetime() + "\t" + record.getValue());
 
-                    System.out.println(cpid + "\t" + record.getDatetime() + "\t" + record.getValue());
+                        // 批量添加到 Map
+                        synchronized (dataMap) {  // 使用同步锁来防止并发写入
+                            dataMap.computeIfAbsent(cpid, k -> new ArrayList<>()).add(record);
+                        }
+                    });
 
-                    dataMap.computeIfAbsent(cpid, k -> new ArrayList<>()).add(record);
-
-                }
-            }
             // 批量插入
             saveBatchData(dataMap);
-        } else {
-            System.out.println("未获取到任何数据.");
         }
+
+        
+
     }
 
     public void processAndSaveHisData(List<YFHisval> values) {
