@@ -37,8 +37,7 @@ public class DataService {
     }
 
     public void processAndSaveNowData(List<YFNowval> values) {
-//        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
-//        Date currentDate = Date.from(zonedDateTime.toInstant());
+
 
         if (values != null && !values.isEmpty()) {
             // 使用 HashMap 按 tableName 分组
@@ -69,7 +68,7 @@ public class DataService {
             saveBatchData(dataMap);
         }
 
-        
+
 
     }
 

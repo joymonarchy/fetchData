@@ -47,7 +47,7 @@ public class DataFetchScheduler {
     /**
      * 每30秒执行一次
      */
-    @Scheduled(fixedRate = 10000)
+//    @Scheduled(fixedRate = 10000)
     public void fetchNowData(){
         IYFApi connect = null;
         try {
@@ -84,6 +84,7 @@ public class DataFetchScheduler {
             }
         }
     }
+    @Scheduled(fixedRate = 60000)
     public void fetchHisData() {
         IYFApi connect = null;
         try {
@@ -101,11 +102,14 @@ public class DataFetchScheduler {
             // 获取当前值
             Calendar cal = new GregorianCalendar();
             cal.add(Calendar.MINUTE, -30);
+            Date startTime = cal.getTime();
 
-            // 获取调整后的时间
-            Date snapTime = cal.getTime();
+            cal.add(Calendar.SECOND,60);
+            Date endTime = cal.getTime();
 
-            List<YFHisval> values = connect.GetSnapshot(vCpids,snapTime);
+            long interval = 10*1000;
+
+            List<YFHisval> values = connect.GetHistoryValue(vCpids, startTime, endTime,interval);;
             dataService.processAndSaveHisData(values);
 
 
