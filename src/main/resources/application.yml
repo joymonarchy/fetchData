@@ -4,7 +4,7 @@ spring:
       primary: master
       datasource:
         master:
-          url: jdbc:mysql://localhost:3306/windfarmdata?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+          url: jdbc:mysql://localhost:3306/ewsystemdata?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
           username: root
           password: 5728
           driver-class-name: com.mysql.cj.jdbc.Driver
@@ -14,6 +14,8 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
 
+server:
+  port: 8081
 api:
   host: "192.168.10.77"
   port: 9090
