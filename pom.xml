@@ -105,9 +105,12 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
+            <groupId>yfapi</groupId>
+            <artifactId>yfapi</artifactId>
+            <version>1.0</version>
         </dependency>
+
+
 
     </dependencies>
     <dependencyManagement>
@@ -139,8 +142,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>com.hust.ewsystem.EwSystemApplication</mainClass>
-                    <skip>true</skip>
+                    <mainClass>com.hust.ewsystemdatafetcher.EwsystemdataFetcherApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
