@@ -53,7 +53,7 @@ public class DataFetchScheduler {
 
 
 
-    @Scheduled(fixedRate = 10000)  // 每10秒执行一次
+    @Scheduled(fixedRate = 10*1000)  // 每10秒执行一次
     public void fetchNowData() {
         // 每10秒启动一次新的任务
         ExecutorService executor = Executors.newFixedThreadPool(3);  // 创建一个线程池，有3个线程
