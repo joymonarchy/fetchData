@@ -36,40 +36,44 @@ public class DataService {
             }
         }
     }
+
     @Async
     public void processAndSaveNowData(List<YFNowval> values) {
         if (values != null && !values.isEmpty()) {
-            // 使用 HashMap 按 tableName 分组
             HashMap<String, List<CommonData>> dataMap = new HashMap<>();
 
-            // 获取当前时间，并计算整十秒时间
-            LocalDateTime currentTime = LocalDateTime.now().withSecond(LocalDateTime.now().getSecond() / 10 * 10).withNano(0);
+            // 预计算当前时间戳
+            LocalDateTime currentTime = LocalDateTime.now()
+                    .withSecond((LocalDateTime.now().getSecond() / 10) * 10) // 取整到10秒倍数
+                    .withNano(0);
             Date currentDate = Date.from(currentTime.atZone(ZoneId.systemDefault()).toInstant());
+            final long currentTimestamp = currentDate.getTime(); // 一次性计算时间戳
 
-            // 使用并行流加速处理
             values.parallelStream()
-                    .filter(item -> item.value.Status == 1)
+                    .filter(item -> item.value.Status == 1) // 初始过滤状态为1的项
                     .forEach(item -> {
                         String cpid = item.Cpid.toLowerCase();
                         CommonData record = new CommonData();
                         record.setDatetime(currentDate);
-                        record.setStatus(item.value.Status);
                         record.setValue(item.value.Value);
-                        System.out.println(cpid + "\t" + record.getDatetime() + "\t" + record.getValue());
 
-                        // 批量添加到 Map
-                        synchronized (dataMap) {  // 使用同步锁来防止并发写入
-                            dataMap.computeIfAbsent(cpid, k -> new ArrayList<>()).add(record);
+                        // 时间差判断（毫秒计算优化性能）
+                        long itemTimestamp = item.value.datetime.getTime();
+                        long timeDiff = currentTimestamp - itemTimestamp;
+                        int calculatedStatus = (timeDiff >= 3600000L) ? 0 : 1; // 超1小时则Status=0
+
+                        record.setStatus(calculatedStatus);
+
+                        synchronized (dataMap) { // 线程安全操作Map
+                            dataMap.computeIfAbsent(cpid, k -> new ArrayList<>())
+                                    .add(record);
                         }
                     });
 
-            // 批量插入
             saveBatchData(dataMap);
         }
-
-
-
     }
+
 
     public void processAndSaveHisData(List<YFHisval> values) {
         if (values != null && !values.isEmpty()) {
