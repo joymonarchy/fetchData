@@ -58,11 +58,12 @@ public class DataService {
                         record.setValue(item.value.Value);
 
                         // 时间差判断（毫秒计算优化性能）
-                        long itemTimestamp = item.value.datetime.getTime();
+                        long itemTimestamp = item.value.Time.getTime();
                         long timeDiff = currentTimestamp - itemTimestamp;
-                        int calculatedStatus = (timeDiff >= 3600000L) ? 0 : 1; // 超1小时则Status=0
+                        int calculatedStatus = (timeDiff >= 1800000L) ? 0 : 1; // 超30min则Status=0
 
                         record.setStatus(calculatedStatus);
+                        System.out.println(cpid+"\t"+record.getDatetime()+"\t"+record.getValue()+'\t'+record.getStatus() );
 
                         synchronized (dataMap) { // 线程安全操作Map
                             dataMap.computeIfAbsent(cpid, k -> new ArrayList<>())
